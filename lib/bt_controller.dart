@@ -1,0 +1,54 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
+import 'dart:async';
+
+import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
+
+class BTController extends ChangeNotifier {
+
+  static BluetoothConnection? connection;
+  static bool _connected = false;
+
+
+  Future<void> connect(String? address) async {
+    //try {
+      print('Address: ${address}');
+      BluetoothConnection connection = await BluetoothConnection.toAddress(address);
+      //connection.input?.listen(null).onDone(() => {});
+      print('Connected to the device');
+      _connected = connection.isConnected;
+      notifyListeners();
+      BTController.connection = connection;
+
+      connection.input?.listen(null).onDone(() {
+      });
+    //}
+    // catch (exception) {
+    //   print(exception.);
+    //
+    //   print('Cannot connect, exception occured');
+    // }
+  }
+
+  void disconnect() {
+    if(_connected) {
+      connection?.finish();
+      _connected = false;
+    }
+    notifyListeners();
+  }
+
+  void sendData(String data) {
+    if(!_connected) {
+      throw Exception("Not connected!");
+    }
+
+    connection?.output.add(ascii.encode(data));
+
+  }
+  bool get connected => _connected;
+
+}

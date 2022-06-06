@@ -1,0 +1,75 @@
+ Set instrukcija
+
+ a
+ Toggle
+ Pomeranje poluge za statuu
+ brojacStatua
+    diamond
+
+ b
+ Toggle
+ Pomeranje nosaca za repliku
+ brojacReplika
+    extension
+
+ c
+ Toggle
+ Pomeranje serva za vucu
+ brojacVuca
+    commit
+
+ d
+ Toggle
+ ukljucivanje izabranih vakuum pumpi
+ brojacSVakum
+    air
+
+ e
+ Toggle
+ ukljucivanje oba vakuma, toglovanje pojedinacnih
+ desniLeviSVakum
+    sync alt
+
+ f
+ Toggle
+ ukljucivanje desnog vakuma
+ desniSVakum
+    chevron right
+
+ g
+ Toggle
+ ukljucivanje levog vakuma
+ leviSVakum
+    chevron left
+
+ h - q
+ Emituje podatke sa numericke tastature
+ Pakuje, redom, u 7-segmentni displej cifre 1-0, respektivno,
+ a najvise 4
+
+ r
+ Toggle
+ brojacPod ??? Servo neki
+ brojacPod
+
+ I
+ rotacija desno za n stepeni, jednom ide naredba
+ rotate_right
+
+ J
+ rotacija levo za n stepeni, jednom ide naredba
+ rotate_left
+
+ F
+ forward, uzastopna naredba
+
+ B
+ backward, uzastopna naredba
+
+ R
+ right, uzastopna naredba
+
+ L
+ left, uzastopna naredba
+ -> Moguce je promeniti brzinu izvrsavanja naredbi, u joysticku
+
