@@ -11,55 +11,80 @@ import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'discovery_page.dart';
 
 
-/// Set instrukcija
-///
-/// a
-/// Toggle
-/// Pomeranje poluge za statuu
-/// brojacStatua
-///
-/// b
-/// Toggle
-/// Pomeranje nosaca za repliku
-/// brojacReplika
-///
-/// c
-/// Toggle
-/// Pomeranje serva za vucu
-/// brojacVuca
-///
-/// d
-/// Toggle
-/// ukljucivanje izabranih vakuum pumpi
-/// brojacSVakum
-///
-/// e
-/// Toggle
-/// ukljucivanje oba vakuma, toglovanje pojedinacnih
-/// desniLeviSVakum
-///
-/// f
-/// Toggle
-/// ukljucivanje desnog vakuma
-/// desniSVakum
-///
-/// g
-/// Toggle
-/// ukljucivanje levog vakuma
-/// leviSVakum
-///
-/// h - q
-/// Emituje podatke sa numericke tastature
-/// Pakuje, redom, u 7-segmentni displej cifre 1-0, respektivno,
-/// a najvise 4
-///
-/// r
-/// Toggle
-/// brojacPod ??? Servo neki
-/// brojacPod
-///
-///
-
+// Set instrukcija
+//
+// a
+// Toggle
+// Pomeranje poluge za statuu
+// brojacStatua
+// diamond
+//
+// b
+// Toggle
+// Pomeranje nosaca za repliku
+// brojacReplika
+// extension
+//
+// c
+// Toggle
+// Pomeranje serva za vucu
+// brojacVuca
+// commit
+//
+// d
+// Toggle
+// ukljucivanje izabranih vakuum pumpi
+// brojacSVakum
+// air
+//
+// e
+// Toggle
+// ukljucivanje oba vakuma, toglovanje pojedinacnih
+// desniLeviSVakum
+// sync alt
+//
+// f
+// Toggle
+// ukljucivanje desnog vakuma
+// desniSVakum
+// chevron right
+//
+// g
+// Toggle
+// ukljucivanje levog vakuma
+// leviSVakum
+// chevron left
+//
+// h - q
+// Emituje podatke sa numericke tastature
+// Pakuje, redom, u 7-segmentni displej cifre 1-0, respektivno,
+// a najvise 4
+//
+// r
+// Toggle
+// brojacPod ??? Servo neki
+// brojacPod
+//
+// I
+// rotacija desno za n stepeni, jednom ide naredba
+// rotate_right
+//
+// J
+// rotacija levo za n stepeni, jednom ide naredba
+// rotate_left
+//
+// F
+// forward, uzastopna naredba
+//
+// B
+// backward, uzastopna naredba
+//
+// R
+// right, uzastopna naredba
+//
+// L
+// left, uzastopna naredba
+// -> Moguce je promeniti brzinu izvrsavanja naredbi, u joysticku
 
 class ControllerPage extends StatefulWidget {
   const ControllerPage({Key? key, required this.title}) : super(key: key);
@@ -74,15 +99,20 @@ class _ControllerPage extends State<ControllerPage> {
 
   List<String> strings = ["q", "h", "i", "j", "k", "l", "m", "n", "o", "p"];
   int _counter = 0;
+  double _speedSliderValue = 64;
+  int _brzinaMotora = 0;
   bool _connected = BTController().connected;
   FlutterBlue flutterBlue = FlutterBlue.instance;
 
   @override
   initState() {
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: [
-    ]);  // to hide only bottom bar
-
     super.initState();
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: [
+    ]);
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeRight,
+      DeviceOrientation.landscapeLeft,
+    ]);
 
   }
 
@@ -169,39 +199,26 @@ class _ControllerPage extends State<ControllerPage> {
                   width: MediaQuery.of(context).size.width,
                   child: Stack(
                     children: [
-                  Positioned(
-                    left: 0,
-                    top: 0,
-                    child: Container(
-                      width: MediaQuery.of(context).size.width * 0.5,
-                      child: Slider(
-                        value: 0,
-                        max: 100,
-                        divisions: 5,
-                        label: "Slider",
-                        onChanged: (double value) {
-                          setState(() {
-                            // _currentSliderValue = value;
-                          });
-                        }
-                        ),
-                    ),
-                  ),
                       Positioned(
                         left: 0,
-                        top: 50,
+                        top: 10,
                         child: Container(
                           width: MediaQuery.of(context).size.width * 0.5,
-                          child: Slider(
-                              value: 0,
-                              max: 100,
-                              divisions: 5,
-                              label: "Slider",
-                              onChanged: (double value) {
-                                setState(() {
-                                  // _currentSliderValue = value;
-                                });
-                              }
+                          child: Column(
+                            children: [
+                              Text("Brzina: ${_speedSliderValue.round()}"),
+                              Slider(
+                                  value: _speedSliderValue,
+                                  max: 255,
+                                  divisions: 16,
+                                  onChanged: (double value) {
+                                    BTController().sendData("G0 ${value.round()}");
+                                    setState(() {
+                                       _speedSliderValue = value;
+                                    });
+                                  }
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -252,6 +269,7 @@ class _ControllerPage extends State<ControllerPage> {
                                   }, icon: Icon(Icons.commit)),
                                 ],
                               ),
+                              Text("Replika / Statua"),
                               Row(
                                 children: [
                                   buildActionButton(callback: () => {
@@ -262,6 +280,7 @@ class _ControllerPage extends State<ControllerPage> {
                                   }, icon: Icon(Icons.diamond)),
                                 ],
                               ),
+                              Text("Rotacija"),
                               Row(
                                 children: [
                                   buildActionButton(callback: () => {
@@ -283,7 +302,8 @@ class _ControllerPage extends State<ControllerPage> {
                           buildActionButton(callback: () => {
                             BTController().sendData("e")
                           }, icon: Icon(Icons.sync_alt)),
-                          buildActionButton(callback: () => {}, icon: Icon(Icons.rotate_right)),
+                          buildActionButton(callback: () {
+                          }, icon: Icon(Icons.output)),
                         ],
                       ),),
                       Align(
