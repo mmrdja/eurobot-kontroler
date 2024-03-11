@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'bt_controller.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 
+import 'configuration_page.dart';
 import 'discovery_page.dart';
 
 
@@ -135,7 +136,7 @@ class _MyHomePageState extends State<MyHomePage> {
           appBar: AppBar(
             // Here we take the value from the MyHomePage object that was created by
             // the App.build method, and use it to set our appbar title.
-            title: Text("MŠE Kontroler za Eurobot 2022"),
+            title: Text("Kontroler za Eurobot 2023"),
           ),
           body: Center(
             // Center is a layout widget. It takes a single child and positions it
@@ -158,7 +159,7 @@ class _MyHomePageState extends State<MyHomePage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 Text(
-                  'Eurobot 2022',
+                  'Eurobot 2023',
                   style: Theme.of(context).textTheme.headline4,
                 ),
                 OutlinedButton(
@@ -166,20 +167,25 @@ class _MyHomePageState extends State<MyHomePage> {
                     Navigator.push(context,
                     MaterialPageRoute(builder: (context) => const DiscoveryPage()));
                   },
-                  child: const Text("Scan Devices"),
+                  child: const Text("Skeniraj robote"),
                 ),
                 ElevatedButton(
                   onPressed: () {
                     Navigator.push(context,
                         MaterialPageRoute(builder: (context) => const ControllerPage(title: "Controller")));
                   },
-                  child: const Text("Controller"),
+                  child: const Text("Kontroler"),
+                ),
+                OutlinedButton.icon(onPressed: () {
+                  Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => const ConfigurationPage()));
+                }, icon: const Icon(Icons.settings), label: const Text("Podešavanja"),
                 ),
                 Consumer<BTController>(
                   builder: (context, notifier, child) {
                     return TextButton(onPressed: () {
                       notifier.disconnect();
-                    }, child: Text("Disconnect"));
+                    }, child: Text("Diskonektuj"));
                   }
                 ),
                 Consumer<BTController> (
@@ -188,13 +194,13 @@ class _MyHomePageState extends State<MyHomePage> {
                       Row(
                         children: const [
                           Icon(Icons.bluetooth_connected, color: Colors.green,),
-                          Text("Connected", style: TextStyle(color: Colors.green),),
+                          Text("Konektovan", style: TextStyle(color: Colors.green),),
                         ],
                       ) :
                       Row(
                         children: const [
                           Icon(Icons.bluetooth_disabled, color: Colors.red),
-                          Text("Not Connected", style: TextStyle(color: Colors.red)),
+                          Text("Nije konektovan", style: TextStyle(color: Colors.red)),
                         ],
                       );
                     }

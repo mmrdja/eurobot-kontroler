@@ -1,12 +1,15 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
+import 'dart:developer' as developer;
 
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 
+// Kontroler koji se brine o konekciji i slanju podataka
 class BTController extends ChangeNotifier {
 
   static BluetoothConnection? connection;
@@ -43,11 +46,20 @@ class BTController extends ChangeNotifier {
 
   void sendData(String data) {
     if(!_connected) {
-      throw Exception("Not connected!");
+      // throw Exception("Not connected!");
     }
-
+    developer.log("Sending ascii: $data (${ascii.encode(data)})");
     connection?.output.add(ascii.encode(data));
 
+  }
+  void sendRawData(int data) {
+    if(!_connected) {
+      // throw Exception('Not connected!');
+    }
+    developer.log("Sending raw: $data");
+    Uint8List list = Uint8List(1);
+    list.add(data);
+    connection?.output.add(list);
   }
   bool get connected => _connected;
 

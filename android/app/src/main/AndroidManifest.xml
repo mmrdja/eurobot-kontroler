@@ -18,7 +18,7 @@
     <uses-permission android:name="android.permission.VIBRATE"/>
     <application
         android:label="eurobot22"
-        android:name="${applicationName}"
+        android:name="eurobot22"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"

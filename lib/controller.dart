@@ -1,8 +1,10 @@
+import 'package:eurobot22/configuration_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_joystick/flutter_joystick.dart';
 import 'package:numeric_keyboard/numeric_keyboard.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'bt_controller.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
@@ -86,6 +88,8 @@ import 'discovery_page.dart';
 // left, uzastopna naredba
 // -> Moguce je promeniti brzinu izvrsavanja naredbi, u joysticku
 
+/// Sam kontroler, ovde se nalaze dugmici
+
 class ControllerPage extends StatefulWidget {
   const ControllerPage({Key? key, required this.title}) : super(key: key);
 
@@ -103,10 +107,15 @@ class _ControllerPage extends State<ControllerPage> {
   int _brzinaMotora = 0;
   bool _connected = BTController().connected;
   FlutterBlue flutterBlue = FlutterBlue.instance;
+  late final ConfigurationController config;
+  String pointsValue = "";
+
+  bool configurationLoaded = false;
 
   @override
   initState() {
     super.initState();
+    loadConfig();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: [
     ]);
     SystemChrome.setPreferredOrientations([
@@ -114,6 +123,13 @@ class _ControllerPage extends State<ControllerPage> {
       DeviceOrientation.landscapeLeft,
     ]);
 
+  }
+  void loadConfig() async {
+    config = ConfigurationController(await SharedPreferences.getInstance());
+    config.retrieveAllSymbols();
+    setState(() {
+      configurationLoaded = true;
+    });
   }
 
   void onData(dynamic str) { setState(() {  }); }
@@ -143,19 +159,19 @@ class _ControllerPage extends State<ControllerPage> {
   void joystickCtrl(StickDragDetails details) {
     if(details.x > 0.5) {
       Vibrate.feedback(FeedbackType.success);
-      BTController().sendData("R");
+      sendCommand(Command.desno);
     }
     if(details.x < -0.5) {
       Vibrate.feedback(FeedbackType.success);
-      BTController().sendData("L");
+      sendCommand(Command.levo);
     }
     if(details.y > 0.5) {
       Vibrate.feedback(FeedbackType.success);
-      BTController().sendData("B");
+      sendCommand(Command.nazad);
     }
     if(details.y < -0.5) {
       Vibrate.feedback(FeedbackType.success);
-      BTController().sendData("F");
+      sendCommand(Command.napred);
     }
   }
 
@@ -165,11 +181,15 @@ class _ControllerPage extends State<ControllerPage> {
     });
   }
 
+  void sendCommand(Command cmd) {
+    BTController().sendData(config.commands[cmd]!);
+  }
+
   @override
   Widget build(BuildContext context) {
         return Consumer<BTController>(
           builder: (context, notifier, child) {
-            if(!notifier.connected) {
+            if(false) {
               return Scaffold(
                 body: Center(
                   child: Column(
@@ -193,6 +213,9 @@ class _ControllerPage extends State<ControllerPage> {
                 )
               );
             }
+            if(!configurationLoaded) {
+              return const Center(child: CircularProgressIndicator(),);
+            }
             return Scaffold(
               body: SafeArea(
                 child: Container(
@@ -212,7 +235,8 @@ class _ControllerPage extends State<ControllerPage> {
                                   max: 255,
                                   divisions: 16,
                                   onChanged: (double value) {
-                                    BTController().sendData("G0 ${value.round()}");
+                                    sendCommand(Command.brzina);
+                                    BTController().sendData("${value.round()}");
                                     setState(() {
                                        _speedSliderValue = value;
                                     });
@@ -225,21 +249,46 @@ class _ControllerPage extends State<ControllerPage> {
                       Positioned(
                         right: 0,
 
-                        child: NumericKeyboard(
-                            onKeyboardTap: (value)  {
-                              Vibrate.feedback(FeedbackType.success);
-                              BTController().sendData(strings[int.parse(value)]);
-                            },
-                            textColor: Colors.lightBlue,
-                            rightButtonFn: () {
-                              Vibrate.feedback(FeedbackType.success);
-                              setState(() {
-                              });
-                            },
-                            leftButtonFn: () {
-                              print('left button clicked');
-                            },
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly
+                        child: Column(
+
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.only(top: 40),
+                              child: Text(
+                                pointsValue,
+                                style: const TextStyle(
+                                  color: Colors.lightBlue,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 24
+                                ),
+                              ),
+                            ),
+                            NumericKeyboard(
+                                onKeyboardTap: (value)  {
+                                  Vibrate.feedback(FeedbackType.success);
+                                  pointsValue += value;
+                                  setState(() {
+
+                                  });
+                                  },
+                                textColor: Colors.lightBlue,
+                                rightIcon: const Icon(Icons.send),
+                                leftIcon: const Icon(Icons.clear),
+                                rightButtonFn: () {
+                                  Vibrate.feedback(FeedbackType.success);
+                                  sendCommand(Command.poeni);
+                                  BTController().sendData(pointsValue);
+                                  setState(() {
+                                  });
+                                },
+                                leftButtonFn: () {
+                                  pointsValue = "";
+                                  setState(() {
+
+                                  });},
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly
+                            ),
+                          ],
                         ),
                       ),
                       Positioned(
@@ -247,48 +296,48 @@ class _ControllerPage extends State<ControllerPage> {
                           bottom: 0,
                           child: Column(
                             children: [
-                              Text("Vakumi toggle"),
-                              Row(
-                              children: [
-                              buildActionButton(callback: () => {
-                                BTController().sendData("g")
-                              }, icon: Icon(Icons.chevron_left)),
-                              buildActionButton(callback: () => {
-                                BTController().sendData("f")
-                              }, icon: Icon(Icons.chevron_right)),
-                            ],
-                          ),
-                          Text("Ukljuci vakume / Vuca"),
+                          //     Text("Vakumi toggle"),
+                          //     Row(
+                          //     children: [
+                          //     buildActionButton(callback: () => {
+                          //       BTController().sendData("g")
+                          //     }, icon: Icon(Icons.chevron_left)),
+                          //     buildActionButton(callback: () => {
+                          //       BTController().sendData("f")
+                          //     }, icon: Icon(Icons.chevron_right)),
+                          //   ],
+                          // ),
+                          // Text("Ukljuci vakume / Vuca"),
+                          //     Row(
+                          //       children: [
+                          //         buildActionButton(callback: () => {
+                          //           BTController().sendData("d")
+                          //         }, icon: Icon(Icons.air)),
+                          //         buildActionButton(callback: () => {
+                          //           BTController().sendData("c")
+                          //         }, icon: Icon(Icons.commit)),
+                          //       ],
+                          //     ),
+                              Text("Podizač"),
                               Row(
                                 children: [
                                   buildActionButton(callback: () => {
-                                    BTController().sendData("d")
-                                  }, icon: Icon(Icons.air)),
-                                  buildActionButton(callback: () => {
-                                    BTController().sendData("c")
-                                  }, icon: Icon(Icons.commit)),
+                                    sendCommand(Command.podizac),
+                                    }, icon: Icon(Icons.forklift)),
                                 ],
                               ),
-                              Text("Replika / Statua"),
+                              Text("Loptice"),
                               Row(
                                 children: [
                                   buildActionButton(callback: () => {
-                                    BTController().sendData("b")
-                                  }, icon: Icon(Icons.extension)),
+                                    sendCommand(Command.servoGore)
+                                  }, icon: const Icon(Icons.arrow_upward)),
                                   buildActionButton(callback: () => {
-                                    BTController().sendData("a")
-                                  }, icon: Icon(Icons.diamond)),
-                                ],
-                              ),
-                              Text("Rotacija"),
-                              Row(
-                                children: [
+                                    sendCommand(Command.servoSredina)
+                                  }, icon: const Icon(Icons.arrow_left)),
                                   buildActionButton(callback: () => {
-                                    BTController().sendData("J")
-                                  }, icon: Icon(Icons.rotate_left)),
-                                  buildActionButton(callback: () => {
-                                    BTController().sendData("I")
-                                  }, icon: Icon(Icons.rotate_right)),
+                                    sendCommand(Command.servoDole)
+                                  }, icon: const Icon(Icons.arrow_downward))
                                 ],
                               ),
                             ],
@@ -307,7 +356,7 @@ class _ControllerPage extends State<ControllerPage> {
                         ],
                       ),),
                       Align(
-                        alignment: const Alignment(-0.65, 0.65),
+                        alignment: const Alignment(-0.75,0.35),
                         ///
                         /// Joystick
                         ///
